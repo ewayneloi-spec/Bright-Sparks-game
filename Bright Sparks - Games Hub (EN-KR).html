@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bright Sparks: Games</title>
+<style>
+  :root{
+    --navy:#0B132B;
+    --navy-deep:#070D1F;
+    --panel:#121B3A;
+    --wire:#2B3A67;
+    --amber:#FFC93C;
+    --cyan:#4FD3C4;
+    --rose:#FF6B6B;
+    --paper:#F5F3EE;
+    --muted:#93A0C4;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;min-height:100%;
+    background:radial-gradient(circle at 20% 10%, #142149 0%, var(--navy) 45%, var(--navy-deep) 100%);
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    color:var(--paper);
+  }
+  .stage{
+    max-width:760px;
+    margin:0 auto;
+    padding:22px 18px 40px;
+    min-height:100vh;
+  }
+  .top-row{
+    display:flex;justify-content:space-between;align-items:center;
+    flex-wrap:wrap;gap:10px;
+  }
+  .badge{
+    background:var(--panel);
+    border:2px solid var(--wire);
+    border-radius:12px;
+    padding:8px 14px;
+    font-weight:bold;
+    font-size:15px;
+  }
+  #kr-toggle{
+    background:var(--panel);
+    border:2px solid var(--wire);
+    color:var(--paper);
+    border-radius:12px;
+    padding:8px 14px;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+  }
+  #kr-toggle.active{
+    background:var(--amber);
+    color:var(--navy-deep);
+    border-color:var(--amber);
+  }
+  h1{
+    font-size:26px;
+    text-align:center;
+    margin:10px 0 2px;
+    text-shadow:0 0 14px rgba(255,201,60,0.35);
+  }
+  h1 span{color:var(--amber);}
+  .subtitle{
+    color:var(--muted);
+    font-size:14px;
+    text-align:center;
+    margin-bottom:20px;
+  }
+  .kr{ font-size:0.85em; color:var(--amber); }
+
+  /* ---------- MENU ---------- */
+  #menu-screen{ display:block; }
+  .mode-grid{
+    display:table;
+    width:100%;
+    border-spacing:14px 0;
+    margin-top:10px;
+  }
+  .mode-card{
+    display:table-cell;
+    width:50%;
+    background:var(--panel);
+    border:3px solid var(--wire);
+    border-radius:22px;
+    padding:26px 18px;
+    text-align:center;
+    cursor:pointer;
+    transition:transform .15s ease, border-color .15s ease;
+  }
+  .mode-card:hover{ transform:translateY(-4px); border-color:var(--amber); }
+  .mode-emoji{ font-size:48px; margin-bottom:10px; }
+  .mode-title{ font-size:19px; font-weight:bold; margin-bottom:6px; }
+  .mode-title-kr{ font-size:13px; color:var(--amber); margin-bottom:8px; }
+  .mode-desc{ font-size:12.5px; color:var(--muted); }
+  .back-btn{
+    background:none;
+    border:2px solid var(--wire);
+    color:var(--paper);
+    border-radius:12px;
+    padding:8px 16px;
+    font-size:13px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-bottom:14px;
+  }
+
+  /* ---------- SHARED WORKBENCH ---------- */
+  .workbench{
+    margin-top:16px;
+    background:var(--panel);
+    border-radius:26px;
+    border:3px solid var(--wire);
+    padding:30px 24px 26px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,0.45);
+  }
+  .end-stat{ font-size:44px; font-weight:bold; margin:10px 0 4px; }
+  .restart-btn{
+    margin-top:16px;
+    background:var(--amber);
+    color:var(--navy-deep);
+    border:none;
+    border-radius:16px;
+    padding:14px 26px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-right:8px;
+  }
+  .ghost-btn{
+    margin-top:16px;
+    background:none;
+    color:var(--paper);
+    border:2px solid var(--wire);
+    border-radius:16px;
+    padding:14px 22px;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+  }
+
+  /* ---------- SORT GAME ---------- */
+  .progress-track{
+    height:8px;width:100%;
+    background:var(--wire);
+    border-radius:6px;
+    overflow:hidden;
+    margin-bottom:22px;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--cyan),var(--amber));
+    width:0%;
+    transition:width .35s ease;
+  }
+  .item-icon{
+    font-size:88px;
+    line-height:1;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,0.4));
+    animation:float 3s ease-in-out infinite;
+  }
+  @keyframes float{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+  .item-label{ font-size:21px; font-weight:bold; margin-top:10px; }
+  .item-label-kr{ font-size:14px; color:var(--amber); margin-top:2px; }
+  .bulb-wrap{ margin:16px 0 4px; }
+  .bulb{
+    font-size:44px;
+    filter:grayscale(1) brightness(0.6);
+    transition:filter .25s ease, transform .25s ease;
+  }
+  .bulb.lit{
+    filter:none;
+    text-shadow:0 0 30px #FFD75E, 0 0 60px #FFC93C;
+    transform:scale(1.15);
+  }
+  .spark-line{
+    height:4px;width:80%;
+    margin:6px auto 0;
+    background:var(--wire);
+    border-radius:3px;
+    position:relative;
+    overflow:hidden;
+  }
+  .spark-line::after{
+    content:'';
+    position:absolute;top:0;left:-40%;
+    width:40%;height:100%;
+    background:linear-gradient(90deg,transparent,var(--amber),transparent);
+    opacity:0;
+  }
+  .spark-line.zap::after{ animation:zap 0.6s linear; }
+  @keyframes zap{ 0%{left:-40%;opacity:1;} 100%{left:100%;opacity:1;} }
+  .choice-row{ display:flex; gap:14px; margin-top:24px; }
+  .choice-btn{
+    flex:1;
+    border:none;
+    border-radius:18px;
+    padding:16px 8px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    color:var(--navy-deep);
+    transition:transform .12s ease, box-shadow .12s ease;
+    box-shadow:0 8px 0 rgba(0,0,0,0.25);
+  }
+  .choice-btn:active{ transform:translateY(6px); box-shadow:0 2px 0 rgba(0,0,0,0.25); }
+  .choice-btn.conductor{ background:var(--cyan); }
+  .choice-btn.insulator{ background:var(--rose); }
+  .choice-kr{ display:block; font-size:12.5px; font-weight:normal; margin-top:3px; opacity:0.85; }
+  .feedback{ margin-top:14px; min-height:26px; font-size:15px; font-weight:bold; }
+  .feedback.correct{ color:var(--cyan); }
+  .feedback.wrong{ color:var(--rose); }
+  .word-bank{
+    margin-top:18px;
+    background:rgba(18,27,58,0.6);
+    border:2px dashed var(--wire);
+    border-radius:16px;
+    padding:12px 16px;
+    font-size:12.5px;
+    color:var(--muted);
+    text-align:center;
+  }
+
+  /* ---------- FLIP GAME ---------- */
+  .deck-progress{ display:flex; justify-content:center; gap:8px; margin-bottom:16px; }
+  .dot{ width:14px;height:14px; border-radius:50%; background:var(--wire); border:2px solid var(--wire); }
+  .dot.done-know{ background:var(--cyan); border-color:var(--cyan); }
+  .dot.done-review{ background:var(--rose); border-color:var(--rose); }
+  .dot.current{ box-shadow:0 0 0 3px rgba(255,201,60,0.4); border-color:var(--amber); }
+  .card-zone{ display:flex; justify-content:center; margin:6px 0 20px; perspective:1600px; }
+  .card{
+    width:100%; max-width:500px; height:300px;
+    position:relative; transform-style:preserve-3d;
+    transition:transform .55s cubic-bezier(.4,.2,.2,1);
+    cursor:pointer;
+  }
+  .card.flipped{ transform:rotateY(180deg); }
+  .card-face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:22px; border:3px solid var(--wire);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:24px 26px;
+  }
+  .card-front{ background:var(--panel); }
+  .card-back{ background:linear-gradient(160deg,#1A2A57,#0F1836); transform:rotateY(180deg); border-color:var(--cyan); }
+  .eyebrow{ font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .card-front .eyebrow{ color:var(--amber); }
+  .card-back .eyebrow{ color:var(--cyan); }
+  .q-text{ font-size:21px; font-weight:bold; line-height:1.3; }
+  .q-text-kr{ font-size:14px; color:var(--amber); margin-top:10px; line-height:1.3; }
+  .a-text{ font-size:19px; line-height:1.35; }
+  .a-text-kr{ font-size:13.5px; color:var(--cyan); margin-top:10px; line-height:1.3; }
+  .q-text b, .a-text b{ color:var(--amber); }
+  .tap-hint{ position:absolute; bottom:14px; font-size:12px; color:var(--muted); }
+  .bolt{ font-size:28px; margin-bottom:8px; }
+  .rate-row{ display:flex; gap:14px; justify-content:center; margin-top:4px; min-height:56px; }
+  .rate-btn{
+    border:none; border-radius:16px; padding:14px 20px; font-size:15px; font-weight:bold;
+    cursor:pointer; color:var(--navy-deep); box-shadow:0 8px 0 rgba(0,0,0,0.25);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .rate-btn:active{ transform:translateY(6px); box-shadow:0 2px 0 rgba(0,0,0,0.25); }
+  .know-btn{ background:var(--cyan); }
+  .review-btn{ background:var(--rose); }
+  .rate-row.hidden{ visibility:hidden; }
+  .nav-hint{ text-align:center; color:var(--muted); font-size:13px; margin-top:8px; }
+  .review-list{
+    text-align:left; background:rgba(255,107,107,0.12);
+    border:2px dashed var(--rose); border-radius:14px; padding:14px 18px; font-size:14px; margin:16px 0;
+  }
+  .hidden-block{ display:none !important; }
+
+  footer{ margin-top:22px; font-size:12px; color:var(--muted); text-align:center; }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="top-row">
+    <div class="badge">⚡ <span id="score-val">0</span></div>
+    <div class="badge" id="lives-badge">💡💡💡</div>
+    <button id="kr-toggle">🇰🇷 한국어</button>
+  </div>
+
+  <h1>Bright <span>Sparks</span></h1>
+  <div class="subtitle" id="global-subtitle">Choose a game to practise conductors and insulators.</div>
+
+  <!-- ================= MENU ================= -->
+  <div id="menu-screen">
+    <div class="mode-grid">
+      <div class="mode-card" onclick="startSort()">
+        <div class="mode-emoji">⚡</div>
+        <div class="mode-title">Sort It!</div>
+        <div class="mode-title-kr kr-only hidden-block">분류하기</div>
+        <div class="mode-desc">Click each object into the Conductor or Insulator bin.</div>
+      </div>
+      <div class="mode-card" onclick="startFlip()">
+        <div class="mode-emoji">🗂️</div>
+        <div class="mode-title">Flip &amp; Check</div>
+        <div class="mode-title-kr kr-only hidden-block">뒤집어 확인하기</div>
+        <div class="mode-desc">Flip the card, read the answer, rate what you remember.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SORT GAME ================= -->
+  <div id="sort-wrap" class="hidden-block">
+    <button class="back-btn" onclick="goMenu()">⬅ Back to games</button>
+    <div class="workbench" id="sort-game-screen">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="item-icon" id="item-icon">🥄</div>
+      <div class="item-label" id="item-label">spoon</div>
+      <div class="item-label-kr" id="item-label-kr">숟가락</div>
+
+      <div class="bulb-wrap">
+        <div class="bulb" id="bulb">💡</div>
+        <div class="spark-line" id="spark-line"></div>
+      </div>
+
+      <div class="choice-row">
+        <button class="choice-btn conductor" onclick="chooseSort('conductor')">
+          ⚡ Conductor
+          <span class="choice-kr" id="kr-conductor">도체</span>
+        </button>
+        <button class="choice-btn insulator" onclick="chooseSort('insulator')">
+          🛡 Insulator
+          <span class="choice-kr" id="kr-insulator">절연체</span>
+        </button>
+      </div>
+      <div class="feedback" id="sort-feedback"></div>
+    </div>
+
+    <div class="workbench hidden-block" id="sort-end-screen">
+      <h2 style="color:var(--amber);margin-top:0;">Circuit Complete!</h2>
+      <div class="end-stat"><span id="sort-final-score">0</span> / <span id="sort-final-total">10</span></div>
+      <div id="sort-end-message" style="color:var(--muted);font-size:15px;"></div>
+      <button class="restart-btn" onclick="startSort()">🔄 Play Again</button>
+      <button class="ghost-btn" onclick="goMenu()">⬅ Games menu</button>
+    </div>
+
+    <div class="word-bank">
+      <b>Word bank:</b> conductor (도체) · insulator (절연체) · metal (금속) · plastic (플라스틱) · wood (나무) · rubber (고무)
+    </div>
+  </div>
+
+  <!-- ================= FLIP GAME ================= -->
+  <div id="flip-wrap" class="hidden-block">
+    <button class="back-btn" onclick="goMenu()">⬅ Back to games</button>
+    <div class="deck-progress" id="deck-progress"></div>
+
+    <div id="flip-play-screen">
+      <div class="card-zone">
+        <div class="card" id="card" onclick="flipCard()">
+          <div class="card-face card-front">
+            <div class="eyebrow">Question</div>
+            <div class="bolt">⚡</div>
+            <div class="q-text" id="q-text"></div>
+            <div class="q-text-kr kr-only hidden-block" id="q-text-kr"></div>
+            <div class="tap-hint">tap the card to reveal the answer</div>
+          </div>
+          <div class="card-face card-back">
+            <div class="eyebrow">Answer</div>
+            <div class="bolt">💡</div>
+            <div class="a-text" id="a-text"></div>
+            <div class="a-text-kr kr-only hidden-block" id="a-text-kr"></div>
+          </div>
+        </div>
+      </div>
+      <div class="rate-row hidden" id="rate-row">
+        <button class="rate-btn know-btn" onclick="rateFlip('know')">✅ I knew it!</button>
+        <button class="rate-btn review-btn" onclick="rateFlip('review')">🔁 Need to review</button>
+      </div>
+      <div class="nav-hint">Card <span id="card-index">1</span> of <span id="card-total">4</span></div>
+    </div>
+
+    <div class="workbench hidden-block" id="flip-end-screen">
+      <h2 style="color:var(--amber);margin-top:0;">Deck Complete!</h2>
+      <div class="end-stat"><span id="flip-final-know">0</span> / <span id="flip-final-total">4</span> ⚡</div>
+      <div id="flip-end-message" style="color:var(--muted);font-size:15px;"></div>
+      <div class="review-list hidden-block" id="review-list-box">
+        <b>Look back over:</b>
+        <ul id="review-list"></ul>
+      </div>
+      <button class="restart-btn" onclick="startFlip()">🔄 Play Again</button>
+      <button class="ghost-btn" onclick="goMenu()">⬅ Games menu</button>
+    </div>
+  </div>
+
+  <footer>Bright Sparks · IPC Unit · Conductors and Insulators</footer>
+</div>
+
+<script>
+/* =================== SHARED =================== */
+let krMode = false;
+let audioCtx = null;
+function beep(freq, dur){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.frequency.value = freq; o.type = 'sine'; g.gain.value = 0.06;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.stop(audioCtx.currentTime + dur);
+  }catch(e){}
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function applyKrVisibility(){
+  document.querySelectorAll('.kr-only').forEach(el=>{
+    el.classList.toggle('hidden-block', !krMode);
+  });
+}
+document.getElementById('kr-toggle').addEventListener('click', function(){
+  krMode = !krMode;
+  this.classList.toggle('active', krMode);
+  applyKrVisibility();
+});
+
+let currentMode = null; // 'sort' | 'flip'
+
+function goMenu(){
+  currentMode = null;
+  document.getElementById('menu-screen').classList.remove('hidden-block');
+  document.getElementById('sort-wrap').classList.add('hidden-block');
+  document.getElementById('flip-wrap').classList.add('hidden-block');
+  document.getElementById('global-subtitle').textContent = 'Choose a game to practise conductors and insulators.';
+  document.getElementById('score-val').textContent = 0;
+  document.getElementById('lives-badge').textContent = '💡💡💡';
+}
+
+/* =================== SORT GAME =================== */
+const sortItems = [
+  {emoji:'🥄', en:'metal spoon', kr:'금속 숟가락', answer:'conductor'},
+  {emoji:'🔑', en:'key', kr:'열쇠', answer:'conductor'},
+  {emoji:'📎', en:'paperclip', kr:'클립', answer:'conductor'},
+  {emoji:'🪙', en:'coin', kr:'동전', answer:'conductor'},
+  {emoji:'✂️', en:'scissors (metal blade)', kr:'가위 (금속 날)', answer:'conductor'},
+  {emoji:'🔗', en:'copper wire', kr:'구리 전선', answer:'conductor'},
+  {emoji:'✏️', en:'wooden pencil', kr:'나무 연필', answer:'insulator'},
+  {emoji:'🧤', en:'rubber glove', kr:'고무 장갑', answer:'insulator'},
+  {emoji:'📏', en:'plastic ruler', kr:'플라스틱 자', answer:'insulator'},
+  {emoji:'🧶', en:'wool', kr:'양모(털실)', answer:'insulator'},
+  {emoji:'🍾', en:'glass bottle', kr:'유리병', answer:'insulator'},
+  {emoji:'🎈', en:'rubber balloon', kr:'고무 풍선', answer:'insulator'},
+];
+let sortOrder = [], sortIdx = 0, sortScore = 0, sortLives = 3, sortLocked = false;
+const SORT_TOTAL = 10;
+
+function startSort(){
+  currentMode = 'sort';
+  document.getElementById('menu-screen').classList.add('hidden-block');
+  document.getElementById('flip-wrap').classList.add('hidden-block');
+  document.getElementById('sort-wrap').classList.remove('hidden-block');
+  document.getElementById('sort-game-screen').classList.remove('hidden-block');
+  document.getElementById('sort-end-screen').classList.add('hidden-block');
+  document.getElementById('global-subtitle').textContent = 'Is it a conductor or an insulator? Zap the right answer!';
+
+  sortOrder = shuffle(sortItems).slice(0, SORT_TOTAL);
+  sortIdx = 0; sortScore = 0; sortLives = 3;
+  document.getElementById('score-val').textContent = 0;
+  updateLives();
+  loadSortItem();
+}
+function updateLives(){
+  document.getElementById('lives-badge').textContent = '💡'.repeat(sortLives) + '🔌'.repeat(3-sortLives);
+}
+function loadSortItem(){
+  sortLocked = false;
+  document.getElementById('sort-feedback').textContent = '';
+  document.getElementById('sort-feedback').className = 'feedback';
+  document.getElementById('bulb').className = 'bulb';
+  document.getElementById('spark-line').className = 'spark-line';
+  const it = sortOrder[sortIdx];
+  document.getElementById('item-icon').textContent = it.emoji;
+  document.getElementById('item-label').textContent = it.en;
+  document.getElementById('item-label-kr').textContent = it.kr;
+  document.getElementById('progress-fill').style.width = ((sortIdx)/SORT_TOTAL*100) + '%';
+}
+function chooseSort(pick){
+  if(sortLocked) return;
+  sortLocked = true;
+  const it = sortOrder[sortIdx];
+  const fb = document.getElementById('sort-feedback');
+  const bulb = document.getElementById('bulb');
+  const line = document.getElementById('spark-line');
+
+  if(pick === it.answer){
+    sortScore++;
+    document.getElementById('score-val').textContent = sortScore;
+    fb.textContent = krMode ? '정답이에요! 잘했어요! ✅' : 'Correct! Nice testing! ✅';
+    fb.className = 'feedback correct';
+    if(it.answer === 'conductor'){ bulb.className = 'bulb lit'; }
+    line.className = 'spark-line zap';
+    beep(880, 0.18);
+  } else {
+    sortLives = Math.max(0, sortLives-1);
+    updateLives();
+    const correctWord = it.answer === 'conductor' ? (krMode?'도체':'a conductor') : (krMode?'절연체':'an insulator');
+    fb.textContent = krMode ? `아쉬워요. 이건 ${correctWord}예요.` : `Not quite — that's ${correctWord}.`;
+    fb.className = 'feedback wrong';
+    beep(180, 0.25);
+  }
+
+  setTimeout(()=>{
+    sortIdx++;
+    if(sortIdx >= SORT_TOTAL || sortLives <= 0){ endSort(); }
+    else { loadSortItem(); }
+  }, 1100);
+}
+function endSort(){
+  document.getElementById('sort-game-screen').classList.add('hidden-block');
+  document.getElementById('sort-end-screen').classList.remove('hidden-block');
+  document.getElementById('sort-final-score').textContent = sortScore;
+  document.getElementById('sort-final-total').textContent = SORT_TOTAL;
+  const pct = sortScore/SORT_TOTAL;
+  let msg = '';
+  if(sortLives<=0){ msg = krMode ? '전구가 나갔어요! 다시 도전해요.' : "The circuit ran out of power — try again!"; }
+  else if(pct === 1){ msg = krMode ? '완벽해요! 진짜 전기 박사님!' : "Perfect score! You're a true Bright Spark!"; }
+  else if(pct >= 0.7){ msg = krMode ? '아주 잘했어요!' : 'Great job sorting your materials!'; }
+  else { msg = krMode ? '잘했어요! 단어장을 보고 다시 해봐요.' : 'Good try! Check the word bank and go again.'; }
+  document.getElementById('sort-end-message').textContent = msg;
+}
+
+/* =================== FLIP GAME =================== */
+const flipCards = [
+  { q: "What are <b>conductors</b>?", qkr:"도체란 무엇인가요?",
+    a: "Materials that are <b>able to</b> transfer electric currents.", akr:"전기를 통과시킬 수 있는 물질입니다." },
+  { q: "What are <b>insulators</b>?", qkr:"절연체란 무엇인가요?",
+    a: "Materials that <b>do not transfer</b> electricity.", akr:"전기를 통과시키지 않는 물질입니다." },
+  { q: "What is <b>conductivity</b>?", qkr:"전도성이란 무엇인가요?",
+    a: "The ability to <b>transfer electricity</b>.", akr:"전기를 통과시키는 능력입니다." },
+  { q: "What is a <b>risk</b> in science?", qkr:"과학에서 위험이란 무엇인가요?",
+    a: "The potential of <b>harm</b> in an experiment/investigation.", akr:"실험이나 조사에서 생길 수 있는 위험의 가능성입니다." }
+];
+let flipOrder = [], flipIdx = 0, flipKnow = 0, flipReview = 0, flipResults = [], flipFlipped = false, flipRated = false;
+
+function startFlip(){
+  currentMode = 'flip';
+  document.getElementById('menu-screen').classList.add('hidden-block');
+  document.getElementById('sort-wrap').classList.add('hidden-block');
+  document.getElementById('flip-wrap').classList.remove('hidden-block');
+  document.getElementById('flip-play-screen').classList.remove('hidden-block');
+  document.getElementById('flip-end-screen').classList.add('hidden-block');
+  document.getElementById('global-subtitle').textContent = 'Tap the card to reveal the answer, then rate yourself.';
+
+  flipOrder = shuffle(flipCards);
+  flipIdx = 0; flipKnow = 0; flipReview = 0; flipResults = [];
+  document.getElementById('score-val').textContent = 0;
+  document.getElementById('lives-badge').textContent = '🔁 ' + 0;
+  buildDots();
+  loadFlipCard();
+}
+function buildDots(){
+  const wrap = document.getElementById('deck-progress');
+  wrap.innerHTML = '';
+  for(let i=0;i<flipOrder.length;i++){
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.id = 'dot-'+i;
+    wrap.appendChild(d);
+  }
+}
+function refreshDots(){
+  flipOrder.forEach((c,i)=>{
+    const d = document.getElementById('dot-'+i);
+    d.className = 'dot';
+    if(flipResults[i] === 'know') d.classList.add('done-know');
+    else if(flipResults[i] === 'review') d.classList.add('done-review');
+    if(i === flipIdx) d.classList.add('current');
+  });
+}
+function loadFlipCard(){
+  flipFlipped = false; flipRated = false;
+  document.getElementById('card').classList.remove('flipped');
+  document.getElementById('q-text').innerHTML = flipOrder[flipIdx].q;
+  document.getElementById('q-text-kr').innerHTML = flipOrder[flipIdx].qkr;
+  document.getElementById('a-text').innerHTML = flipOrder[flipIdx].a;
+  document.getElementById('a-text-kr').innerHTML = flipOrder[flipIdx].akr;
+  document.getElementById('rate-row').classList.add('hidden');
+  document.getElementById('card-index').textContent = flipIdx+1;
+  document.getElementById('card-total').textContent = flipOrder.length;
+  refreshDots();
+}
+function flipCard(){
+  if(flipRated) return;
+  flipFlipped = !flipFlipped;
+  document.getElementById('card').classList.toggle('flipped', flipFlipped);
+  if(flipFlipped){
+    document.getElementById('rate-row').classList.remove('hidden');
+    beep(660,0.15);
+  } else {
+    document.getElementById('rate-row').classList.add('hidden');
+  }
+}
+function rateFlip(choice){
+  if(flipRated) return;
+  flipRated = true;
+  flipResults[flipIdx] = choice;
+  if(choice === 'know'){ flipKnow++; document.getElementById('score-val').textContent = flipKnow; beep(880,0.18); }
+  else { flipReview++; document.getElementById('lives-badge').textContent = '🔁 ' + flipReview; beep(220,0.25); }
+  refreshDots();
+  setTimeout(()=>{
+    flipIdx++;
+    if(flipIdx >= flipOrder.length){ endFlip(); }
+    else { loadFlipCard(); }
+  }, 500);
+}
+function endFlip(){
+  document.getElementById('flip-play-screen').classList.add('hidden-block');
+  document.getElementById('flip-end-screen').classList.remove('hidden-block');
+  document.getElementById('flip-final-know').textContent = flipKnow;
+  document.getElementById('flip-final-total').textContent = flipOrder.length;
+
+  let msg = '';
+  if(flipKnow === flipOrder.length){ msg = krMode ? '완벽해요! 진짜 전기 박사님! ⚡' : "Perfect! You're a true Bright Spark! ⚡"; }
+  else if(flipKnow >= flipOrder.length/2){ msg = krMode ? '아주 잘했어요! 조금만 더 연습해요.' : 'Great effort! A little more practice on the rest.'; }
+  else { msg = krMode ? '좋은 시작이에요! 다시 한번 넘겨볼까요?' : "Good start — let's flip through again!"; }
+  document.getElementById('flip-end-message').textContent = msg;
+
+  const reviewBox = document.getElementById('review-list-box');
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+  const toReview = flipOrder.filter((c,i)=>flipResults[i]==='review');
+  if(toReview.length){
+    reviewBox.classList.remove('hidden-block');
+    toReview.forEach(c=>{
+      const li = document.createElement('li');
+      li.innerHTML = krMode ? (c.q + ' <span class="kr-only' + (krMode?'':' hidden-block') + '" style="color:var(--amber);"> — ' + c.qkr + '</span>') : c.q;
+      list.appendChild(li);
+    });
+  } else {
+    reviewBox.classList.add('hidden-block');
+  }
+}
+
+/* init */
+goMenu();
+applyKrVisibility();
+</script>
+</body>
+</html>
